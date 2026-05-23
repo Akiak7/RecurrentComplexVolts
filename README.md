@@ -6,18 +6,14 @@ Recurrent Complex structure ecosystem: bundled `.rcst` files, user structure
 files, missing-mod tolerance, manual placement, worldgen compatibility, and the
 first pieces of the creator workflow.
 
-This is an alpha-quality compatibility port, not a complete replacement for the
-1.12.2 mod yet.
-
 ## Target
 
 - Minecraft: `1.20.1`
 - Forge: `47.4.10`
 - Java: `17`
-- Gradle wrapper: `8.8`
 - Mod id: `reccomplex`
 
-## Current Alpha Scope
+## Current 1.20.1 Scope
 
 Implemented and actively tested:
 
@@ -39,7 +35,7 @@ Implemented and actively tested:
   generation/expression/transformer/metadata presets, and running selection,
   clipboard, export, marker, and script-marker workflows from the Author tab.
 
-Still incomplete:
+Still in progress:
 
 - the full old GUI/editor workflow beyond the current browser, preview launcher,
   generation panel, and Author tab;
@@ -50,35 +46,9 @@ Still incomplete:
 - old GUI-driven schematic conversion screens and rich schematic ghost previews;
 - complete modded block/entity/item remapping beyond safe missing-content fallback.
 
-## Building
-
-Use Java 17:
-
-```sh
-JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home ./gradlew build
-```
-
-The modern port compiles from `src/modern/java` and
-`src/modernTest/java`. The legacy 1.12.2 source remains in `src/main/java` as
-reference material and is intentionally not compiled by the modern source set.
-
-The built mod jar is written under `build/libs/`.
-
-## Running In Development
-
-```sh
-JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home ./gradlew runClient
-```
-
-For a dev server:
-
-```sh
-JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home ./gradlew runServer
-```
-
 ## User Guide
 
-This alpha is still command-first. `/rc gui` provides the first modern browser,
+This build is still command-first. `/rc gui` provides the first modern browser,
 preview launcher, generation/expression/transformer panel, and Author tab,
 while commands and tool items remain the authoritative way to inspect, place,
 author, export, and debug structures.
@@ -94,9 +64,6 @@ Start in game with:
 `/rc help worldgen`, and `/rc help diagnostics`. `/rc status` gives a compact
 alpha health summary with the loaded version, discoverable structure count,
 structure folder, and major generation toggles.
-
-For a compact command map outside the game, see
-`docs/porting/alpha-command-reference.md`.
 
 ### Permissions
 
@@ -438,7 +405,7 @@ as long as you remain in the same dimension and the affected chunks are loaded.
 
 ### Script Marker Authoring
 
-The current alpha can author the RC script/action marker subset that already
+The current build can author the RC script/action marker subset that already
 runs in the 1.20.1 port: weighted command scripts and simple one-child
 `strucGen` structure spawners. These marker edits are world edits, so they are
 undoable with `/rc undo`.
@@ -808,7 +775,7 @@ Compatibility policy:
 - preserve block entity NBT only where the modern target is known and safe;
 - log conversion gaps clearly through commands, audit output, and `latest.log`.
 
-## Alpha Notes
+## Early-Access Notes
 
 Worldgen currently uses a deferred compatibility bridge so legacy structures are
 selected during worldgen but placed on the server thread when affected chunks are
@@ -816,7 +783,7 @@ safe to touch. This is intentionally conservative and avoids chunk-worker world
 mutation. Under very fast creative flight, distant decoration catch-up may be
 dropped as an alpha stability compromise.
 
-Known alpha limitations:
+Known limitations:
 
 - the current GUI is a modern browser/editor front-end, not the full old 1.12.2
   editor stack;
@@ -830,10 +797,7 @@ Known alpha limitations:
 - some far-away decoration catch-up is intentionally ephemeral under fast-flight
   pressure.
 
-For release-candidate testing, use `./gradlew verifyReleaseJar` plus the checklist in
-`docs/porting/alpha-release-checklist.md`.
-
-When reporting alpha bugs, include `logs/latest.log`, any crash report, the
+When reporting bugs, include `logs/latest.log`, any crash report, the
 world seed/dimension/position if relevant, the exact `/rc` command or GUI page
 used, the structure/schematic id, and a screenshot for visible placement or GUI
 issues.
