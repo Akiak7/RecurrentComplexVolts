@@ -1,19 +1,72 @@
 # Recurrent Complex Volts
 
-Recurrent Complex Volts is a staged Minecraft 1.20.1 Forge port of the
-legacy Recurrent Complex mod. The current port focuses on preserving the old
-Recurrent Complex structure ecosystem: bundled `.rcst` files, user structure
-files, missing-mod tolerance, manual placement, worldgen compatibility, and the
-first pieces of the creator workflow.
+Recurrent Complex Volts brings classic Recurrent Complex structures and
+worldgen to Minecraft 1.20.1 Forge. It loads old RC `.rcst` structure files,
+generates bundled structures in new worlds, and provides modern commands and
+GUI tools for browsing, placing, editing, exporting, and diagnosing structures.
 
-## Target
+The port is built around compatibility. Missing mod content should degrade
+safely, usually to air, instead of crashing a world. Old structure files remain
+the primary structure format.
+
+## Supported Version
 
 - Minecraft: `1.20.1`
 - Forge: `47.4.10`
 - Java: `17`
 - Mod id: `reccomplex`
 
-## Current 1.20.1 Scope
+Install it like a normal Forge mod by putting the built jar in your `mods`
+folder.
+
+## Quick Start
+
+Start in game with:
+
+```text
+/rc gui
+/rc help
+/rc status
+```
+
+Useful first commands:
+
+```text
+/rc list
+/rc info SmallFortRuins
+/rc preview place SmallFortRuins
+/rc confirm
+/rc undo
+```
+
+Vanilla locate support is available for aggregate RC natural structures:
+
+```text
+/locate structure reccomplex:natural_structure
+```
+
+Specific predictive RC locating is available through:
+
+```text
+/rc locate StonePlantMound
+/rc locate StonePlantMound family
+```
+
+## What The Mod Adds
+
+- Classic Recurrent Complex structure generation for Forge 1.20.1: ruins,
+  dungeons, trees, mazes, villages, Nether structures, terrain blending, and
+  missing-mod-safe legacy `.rcst` loading.
+- Usable in-game workflow: `/rc gui`, structure browser, ghost preview,
+  confirm/cancel, undo, selection/export tools, schematic import/export, and
+  generation/transformer/script-marker authoring.
+- Modpack-friendly controls: make RC generation rarer, commoner, disabled, or
+  optionally spaced out from the GUI or `/rc worldgen balance`.
+- Still not a perfect 1.12.2 clone: the full old GUI stack, exact jigsaw/village
+  parity, some advanced transformer/expression cases, and broad modded-content
+  remapping remain future work.
+
+## Current Feature Scope
 
 Implemented and actively tested:
 
@@ -23,7 +76,7 @@ Implemented and actively tested:
 - manual commands such as `/rc list`, `/rc check`, and `/rc place`;
 - runtime compatibility audit commands with `/rc audit`;
 - natural Overworld and Nether worldgen through the deferred compatibility bridge;
-- legacy village, decoration/tree, sapling, maze, and script-generation subsets;
+- village, decoration/tree, sapling, maze, and script-generation subsets;
 - command-side authoring with `/rc select`, `/rc export`, and selection edit commands;
 - schematic interchange commands for listing, previewing, converting, and exporting
   Sponge `.schem` plus legacy `.schematic` files;
@@ -33,7 +86,9 @@ Implemented and actively tested:
 - a first modern `/rc gui` browser for browsing structures/schematics,
   launching preview-first operations, making editable config copies, applying
   generation/expression/transformer/metadata presets, and running selection,
-  clipboard, export, marker, and script-marker workflows from the Author tab.
+  clipboard, export, marker, and script-marker workflows from the Author tab;
+- in-game worldgen balance controls for making RC structures rarer, commoner,
+  or disabled, plus optional natural-structure spacing/anti-clumping controls.
 
 Still in progress:
 
@@ -46,12 +101,17 @@ Still in progress:
 - old GUI-driven schematic conversion screens and rich schematic ghost previews;
 - complete modded block/entity/item remapping beyond safe missing-content fallback.
 
+For casual users, this version is meant to be "basically RC" in the practical
+sense: old `.rcst` structures load, generate, preview, place, export, and can be
+edited from commands or `/rc gui`. The remaining gaps are mostly deeper old
+editor tables, exact jigsaw/village parity, exact maze/transformer edge cases,
+and broader mod compatibility polish.
+
 ## User Guide
 
-This build is still command-first. `/rc gui` provides the first modern browser,
-preview launcher, generation/expression/transformer panel, and Author tab,
-while commands and tool items remain the authoritative way to inspect, place,
-author, export, and debug structures.
+`/rc gui` provides the modern browser, preview launcher,
+generation/expression/transformer panel, and Author tab. Commands and tool items
+remain useful for precise placement, authoring, export, and debugging.
 
 Start in game with:
 
@@ -62,8 +122,11 @@ Start in game with:
 
 `/rc help` lists short topic pages such as `/rc help authoring`,
 `/rc help worldgen`, and `/rc help diagnostics`. `/rc status` gives a compact
-alpha health summary with the loaded version, discoverable structure count,
-structure folder, and major generation toggles.
+status summary with the loaded version, discoverable structure count, structure
+folder, and major generation toggles.
+
+For a compact command map outside the game, see
+`docs/porting/command-reference.md`.
 
 ### Permissions
 
@@ -116,7 +179,7 @@ wrong.
   - Shows focused examples for `basics`, `library`, `place`, `authoring`,
     `worldgen`, `diagnostics`, or `config`.
 - `/rc status`
-  - Shows the alpha health summary: mod version, discoverable structures,
+  - Shows the status summary: mod version, discoverable structures,
     user structure folder, and major generation bridge toggles.
 - `/rc doctor`
   - Alias for `/rc status`.
@@ -224,8 +287,13 @@ The same options also work with slash ids such as:
 ### Worldgen Diagnostics
 
 - `/rc worldgen status`
-  - Shows natural worldgen config, whitelist behavior, queue caps, complement
-    status, planning limits, and freeze diagnostics status.
+  - Shows natural worldgen config, allowed structure ids, queue caps, complement
+    status, compatible surface-footprint mode, planning limits, and freeze
+    diagnostics status.
+- `/rc worldgen balance`
+  - Shows the main frequency knobs in plain language, including natural
+    `rarity` (`higher = rarer`), sapling/decorator weights, village weight, and
+    the config file location.
 - `/rc worldgen catalog`
   - Shows the currently supported natural worldgen catalog and category
     distribution.
@@ -233,13 +301,28 @@ The same options also work with slash ids such as:
   - Shows natural-generation metadata and support status for one structure.
 - `/rc worldgen queue`
   - Shows deferred placement queue, planned store, active store, ledger,
-    complement, watchdog, and worker-planning diagnostics.
+    complement, optional watchdog, and worker-planning diagnostics.
 - `/rc worldgen recent`
   - Shows recent RC worldgen events such as queued, planned, resumed, placed,
     skipped, complement, and pressure statuses.
+- `/rc worldgen rates <id>`
+  - Shows static pre-terrain selector inputs for one RC natural structure:
+    category, generation weight, biome/dimension weights, config multipliers,
+    and estimated current-biome odds before terrain and queue checks.
+- `/rc worldgen sample <id> [family] [detail] [radius <chunks>]`
+  - Runs a gentle tick-sliced rarity scan over the full requested radius. It
+    separates aggregate selections, target selections, terrain rejects, accepted
+    target placements, and the nearest different aggregate candidate. `detail`
+    adds capped surface-spread parity diagnostics for terrain rejects.
+- `/rc worldgen survey <id> [family] [detail] [radius <chunks>] [centers <count>] [spacing <chunks>]`
+  - Runs multiple sample windows across the current world seed and aggregates
+    the same rarity and terrain-reject evidence.
+- `/rc worldgen sample status`, `/rc worldgen sample cancel`, `/rc worldgen survey status`, `/rc worldgen survey cancel`, `/rc worldgen stats`
+  - Inspect or stop active diagnostic jobs and view live in-memory natural
+    generation counters since server start.
 
-Worldgen uses a deferred compatibility bridge. The feature callback selects
-legacy structures, but actual block mutation happens later on the server thread
+Worldgen uses a deferred compatibility bridge. The feature callback selects RC
+structures, but actual block mutation happens later on the server thread
 when affected chunks are safe to touch.
 
 ### Sapling, Decoration, And Village Bridges
@@ -257,9 +340,9 @@ when affected chunks are safe to touch.
 - `/rc decoration probe <x y z>`
   - Probes decoration eligibility at a specific position.
 - `/rc vanilla status`
-  - Shows the bounded legacy vanilla/village-piece bridge config.
+  - Shows the bounded RC village-piece bridge config.
 - `/rc vanilla catalog`
-  - Shows supported legacy village/vanilla hook entries.
+  - Shows supported RC village-piece entries.
 - `/rc vanilla inspect <id>`
   - Shows parsed village metadata and limits for one structure.
 - `/rc vanilla probe`
@@ -482,9 +565,9 @@ Then use:
 
 The long `/rc schematic ...` spelling is also available. Sponge `.schem` import
 preserves modern blockstate properties where possible. Legacy `.schematic`
-import reads `Materials=Alpha` numeric block/data arrays and optional
-Schematica mappings. Missing schematic blocks degrade to air with conversion
-notes, just like missing content in `.rcst` structures.
+import reads old MCEdit numeric block/data arrays and optional Schematica
+mappings. Missing schematic blocks degrade to air with conversion notes, just
+like missing content in `.rcst` structures.
 
 ### First Structure Workflow
 
@@ -534,8 +617,8 @@ structures.
 
 The `/rc gui` browser exposes the same safe editing path for selected exported
 structures. Its generation editor is split into `Nat`, `Trig`, `Village`,
-`Expr`, `Xform`, and `Meta` pages for natural fields, sapling/decoration
-trigger fields, village-piece fields, dependency/biome/dimension expressions,
+`Rules`, `Xform`, and `Meta` pages for natural fields, sapling/decoration
+trigger fields, village-piece fields, simple biome/dimension allow/block rules,
 transformer presets, and basic metadata/copy actions. Bundled structures stay
 read-only in the GUI; use Meta -> Make edit or `/rc copy <sourceId> <newId>`
 before editing.
@@ -566,7 +649,7 @@ rejected locally and server-side before metadata changes.
   - Writes a vanilla decoration replacement preset using the current supported
     surface placement metadata.
 - `/rc gen preset village <id> [any|plains|desert|savanna|taiga|snowy]`
-  - Writes a bounded village-piece preset for the current legacy vanilla bridge.
+  - Writes a bounded village-piece preset for the current RC village bridge.
     Defaults are weight `1.0`, front `north`, shift `0 0 0`, and cap `1`.
 - `/rc gen natural category <id> <category>`
   - Updates only the natural generation category.
@@ -583,11 +666,11 @@ rejected locally and server-side before metadata changes.
   - Updates a decoration generation entry's weight while preserving its
     decoration type and shift.
 - `/rc gen village front <id> <north|east|south|west>`
-  - Sets the legacy village front direction used by the bridge.
+  - Sets the village-piece front direction used by the bridge.
 - `/rc gen village shift <id> <x> <y> <z>`
   - Sets the village-piece spawn shift relative to the placement anchor.
 - `/rc gen village weight <id> <weight>`
-  - Sets the legacy village generation weight before the global village base
+  - Sets the village-piece generation weight before the global village base
     weight is applied.
 - `/rc gen village cap <id> <max_per_village>`
   - Sets a simple per-village cap for this custom piece.
@@ -601,6 +684,22 @@ rejected locally and server-side before metadata changes.
 - `/rc gen expr show <id>`
   - Shows dependency, natural biome/dimension, decoration biome/dimension, and
     village biome expression summaries.
+- `/rc gen rules show <id>`
+  - Shows the same common targeting rules in plain language.
+- `/rc gen rules natural biome allow|block <id> <biome|#tag|alias>`
+  - Adds a friendly natural biome allow/block rule. Examples: `plains`,
+    `forest`, `minecraft:badlands`, `#minecraft:is_forest`.
+- `/rc gen rules natural dimension allow|block <id> <overworld|nether|end|all|dimension_id>`
+  - Adds a friendly natural dimension allow/block rule.
+- In `/rc gui -> Gen -> Rules`, type those simple values directly:
+  `forest`, `plains`, `#minecraft:is_forest`, `overworld`, `nether`, `end`,
+  or `all`. Raw `$FOREST`-style expressions remain available through
+  `/rc gen expr`, but common rules do not require them.
+- `/rc gen rules decoration biome|dimension allow|block|clear ...`
+  - Edits the same friendly rules for vanilla decoration replacement entries.
+- `/rc gen rules village biome <id> <any|plains|desert|savanna|taiga|snowy|biome|#tag|expression>`
+  - Sets a village biome rule without requiring users to learn the raw
+    expression syntax for common cases.
 - `/rc gen expr dependency <id> <expression>`
   - Sets the top-level dependency expression used by generation catalogs.
     Manual placement and read-only browsing still work when this expression is
@@ -741,23 +840,74 @@ config/reccomplex-common.toml
 
 Important groups:
 
-- `legacyWorldgen`
-  - Natural Overworld/Nether worldgen bridge, deferred queue limits, planned
-    storage, chunk complements, concurrent planning, and freeze diagnostics.
-- `legacySaplings`
-  - Sapling replacement bridge.
-- `legacyDecorations`
-  - Tree, mushroom, cactus, desert well, and fossil decoration bridge.
-- `legacyVanilla`
-  - Bounded village/vanilla-piece bridge.
+- `worldgen`
+  - Natural Overworld/Nether generation, deferred queue limits, planned
+    storage, chunk complements, concurrent planning, and optional freeze
+    diagnostics. Freeze diagnostics are disabled by default for release/tester
+    builds; enable them only when investigating a suspected server stall.
+- `saplings`
+  - RC sapling replacement.
+- `decorations`
+  - Tree, mushroom, cactus, desert well, and fossil decoration replacement.
+- `villages`
+  - Bounded RC village-piece bridge.
+
+Older `legacyWorldgen`, `legacySaplings`, `legacyDecorations`, and
+`legacyVanilla` sections are migrated automatically at startup. If both old and
+new names are present, the new value wins.
 
 Useful diagnostics after changing config:
 
 ```text
 /rc worldgen status
+/rc worldgen balance
 /rc sapling status
 /rc decoration status
 /rc vanilla status
+```
+
+### How Do I Change Frequency?
+
+Use `/rc gui` -> `Balance` for the friendly editor, or `/rc worldgen balance`
+for the same values in chat. Both point at the current global controls in
+`config/reccomplex-common.toml`.
+
+- Natural structures: `worldgen.rarity`; higher values make natural RC
+  structures rarer. `1` is the default RC rate.
+- Natural multiplier: `worldgen.balance.naturalFrequencyMultiplier`.
+  `0` disables natural RC attempts, `0.5` halves them, `1` is normal, and `2`
+  doubles them.
+- Natural category multipliers: `worldgen.balance.decoration`,
+  `frequent`, `adventure`, `rare`, and `ultrarare` tune those RC categories
+  independently.
+- Saplings: `saplings.triggerChance` controls whether a sapling growth can
+  use RC, and `saplings.baseWeight` controls how often RC wins against
+  vanilla once it is considered.
+- Decorations: `decorations.*BaseWeight` controls tree, mushroom, cactus,
+  desert well, and fossil replacement weights. Higher values make RC decorators
+  win more often.
+- Villages: `villages.baseWeight` controls how often RC pieces win inside
+  the bounded village bridge.
+- Individual exported structures: use `/rc gen show <id>`, `/rc gen natural
+  weight <id> <value>`, or `/rc gui` -> `Gen`.
+- Optional spacing: `/rc gui` -> `Balance` -> `Spacing`, or
+  `/rc worldgen balance set spacing enabled true`, prevents accepted RC natural
+  structures from starting too close to earlier RC natural structures. It is
+  disabled by default so existing worlds and v0.1 behavior are unchanged.
+- Surface compatibility: `worldgen.compatSurfaceFootprint=true` keeps natural
+  surface placement closer to old RC `SelectivePlacer` behavior by measuring
+  rough terrain against the trigger-chunk safe footprint first. Set it to
+  `false` only when comparing against the stricter full-footprint port behavior.
+
+Example commands:
+
+```text
+/rc worldgen balance set natural multiplier 0.5
+/rc worldgen balance set natural rarity 2
+/rc worldgen balance set natural category frequent 2
+/rc worldgen balance set decorations weight tree 2
+/rc worldgen balance set spacing enabled true
+/rc worldgen balance set spacing distance 8
 ```
 
 ## Structure Compatibility
@@ -775,13 +925,19 @@ Compatibility policy:
 - preserve block entity NBT only where the modern target is known and safe;
 - log conversion gaps clearly through commands, audit output, and `latest.log`.
 
-## Early-Access Notes
+## Runtime Notes And Known Limitations
 
-Worldgen currently uses a deferred compatibility bridge so legacy structures are
+Worldgen currently uses a deferred compatibility bridge so RC structures are
 selected during worldgen but placed on the server thread when affected chunks are
 safe to touch. This is intentionally conservative and avoids chunk-worker world
 mutation. Under very fast creative flight, distant decoration catch-up may be
-dropped as an alpha stability compromise.
+dropped as a runtime stability compromise.
+
+The deferred bridge is not temporary debug scaffolding. It is the modern safety
+model for placing old RC structures in 1.20.1 without force-loading chunks or
+mutating the world from chunk-worker callbacks. Natural structures can also use
+ledger/complement records so valid multi-chunk work can finish as chunks load
+naturally.
 
 Known limitations:
 
@@ -797,7 +953,46 @@ Known limitations:
 - some far-away decoration catch-up is intentionally ephemeral under fast-flight
   pressure.
 
+For release-candidate testing, use `./gradlew verifyReleaseJar` plus the checklist in
+`docs/porting/release-checklist.md`.
+
 When reporting bugs, include `logs/latest.log`, any crash report, the
 world seed/dimension/position if relevant, the exact `/rc` command or GUI page
 used, the structure/schematic id, and a screenshot for visible placement or GUI
 issues.
+
+## Building From Source
+
+Most users do not need this section. It is for developers or pack maintainers
+building the jar locally.
+
+Use Java 17:
+
+```sh
+JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home ./gradlew build
+```
+
+The built mod jar is written under `build/libs/`.
+
+For a development client:
+
+```sh
+JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home ./gradlew runClient
+```
+
+For a development server:
+
+```sh
+JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home ./gradlew runServer
+```
+
+The modern port compiles from `src/modern/java` and `src/modernTest/java`.
+The legacy 1.12.2 source remains in `src/main/java` as reference material and
+is intentionally not compiled by the modern source set.
+
+Build target details:
+
+- Minecraft: `1.20.1`
+- Forge: `47.4.10`
+- Java: `17`
+- Gradle wrapper: `8.8`
