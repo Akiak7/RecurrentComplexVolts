@@ -49,6 +49,32 @@ Volts build. In game, start with `/rc help` and `/rc status`.
 - `/rc audit` - audit all loadable structures.
 - `/rc audit one <id>` - audit one structure.
 - `/rc audit filter <text>` - audit matching structures.
+- `/rc missing list` - list global missing-block replacement rules from
+  `config/reccomplex/missing-block-replacements.json`.
+- `/rc missing one <id>` - scan one structure and list missing legacy block ids,
+  metadata, counts, and current replacements.
+- `/rc missing filter <text>` - scan matching structures and summarize top
+  missing block ids.
+- `/rc missing dump [filter]` - scan all or matching structures and write a
+  full missing-block report under `config/reccomplex/reports`. This is the
+  detailed bulk-audit path for large old structure packs; normal worldgen logs
+  intentionally summarize expected missing-mod fallbacks instead of warning for
+  every block id.
+- `/rc missing set <legacyId[@metadata]> <modernBlockState>` - replace a
+  missing block globally instead of falling back to air. Examples:
+  `quark:limestone minecraft:calcite` or
+  `quark:limestone@3 minecraft:oak_log[axis=y]`.
+- `/rc missing apply <structureId> <legacyId[@metadata]> <modernBlockState>` -
+  permanently repair only that editable config structure. Bundled/read-only
+  structures must be copied first.
+- `/rc missing clear <legacyId[@metadata]>` - remove one replacement rule.
+- `/rc missing reload` - reload the replacement JSON file after manual edits.
+
+Missing block replacement rules are non-destructive. They affect check/audit,
+preview ghosts, placement, worldgen, and other paths that use the normal legacy
+block resolver, but they do not rewrite bundled or user `.rcst` files. Use
+`/rc missing apply` or GUI `Gen -> Fix -> Apply Here` when you want to save a
+repair into one editable `.rcst` file instead of using a global rule.
 
 ## Placement
 
@@ -87,14 +113,24 @@ Volts build. In game, start with `/rc help` and `/rc status`.
   marker.
 - `/rc script command set <x y z> <command>` - create or replace an undoable
   weighted command marker at an air/existing-script position.
+- `/rc script command list <x y z>` - print the current weighted command entries.
 - `/rc script command add <x y z> <weight> <command>` - append a weighted
   command entry to a command marker.
+- `/rc script command update <x y z> <index> <weight> <command>` - replace one
+  1-based weighted command entry.
+- `/rc script command remove <x y z> <index>` - remove one 1-based weighted
+  command entry.
 - `/rc script command clear <x y z>` - clear command entries while keeping the
   command marker block.
 - `/rc script struc set <x y z> <childId>` - create or replace a simple
   one-child `strucGen` marker pointing at a loadable structure.
-- `/rc script struc shift|front|transform ...` - edit the simple spawner's
-  child shift, front direction, rotation, and mirror flag.
+- `/rc script struc list set <x y z> <listId>` - switch the spawner marker to
+  legacy structure-list mode, where runtime picks from an existing RC weighted
+  structure list.
+- `/rc script struc list clear <x y z>` - clear structure-list mode and return
+  to simple child mode.
+- `/rc script struc shift|front|transform ...` - edit the spawner's child/list
+  shift, front direction, rotation, and mirror flag.
 - `/rc script trigger spawn|redstone <x y z> <true|false>` - toggle whether
   the marker runs when placed with its parent structure or when powered.
 - `/rc undo` covers committed structure placement, clipboard paste, and marker
@@ -103,8 +139,9 @@ Volts build. In game, start with `/rc help` and `/rc status`.
 - The `/rc gui` Author tab has `Select`, `Clipboard`, `Markers`, and `Script`
   pages for
   precise coordinate entry, here/look selection, one-face resize, copy, paste
-  preview, `.rcst`/`.schem` export, common marker fills, and command/simple
-  structure-spawner marker authoring.
+  preview, `.rcst`/`.schem` export, common marker fills, and command/simple or
+  structure-list spawner marker authoring. The Script page is split into
+  `Target`, `Cmd`, `Spawn`, and `Xform` subpages.
 - `/rc export <id>` - write the current selection to
   `config/reccomplex/structures/active/structures/<id>.rcst`.
 - `/rc schem export <name>` - write the current selection to a Sponge `.schem`
@@ -147,13 +184,14 @@ Volts build. In game, start with `/rc help` and `/rc status`.
   relative to the exported structure's lower corner.
 - `/rc gen clear <id>` - remove generation metadata from an exported structure.
 - The `/rc gui` generation panel is split into `Nat`, `Trig`, `Village`,
-  `Rules`, `Xform`, and `Meta` pages. It can edit natural fields,
+  `Rules`, `Xform`, `Meta`, and `Fix` pages. It can edit natural fields,
   sapling/decoration weights and shifts, village-piece fields,
   simple biome/dimension allow/block rules, transformer presets, clear, validate,
-  and rotatable/mirrorable/blocking flags without typing the full commands. Its
-  Meta page can make an editable config copy of a bundled/template structure,
-  then edit authors, comment, and weblink on that copy. Bundled structures
-  remain read-only.
+  rotatable/mirrorable/blocking flags, and global missing-block replacement
+  rules without typing the full commands. Its Meta page can make an editable
+  config copy of a bundled/template structure, then edit authors, comment, and
+  weblink on that copy. Bundled structures remain read-only for metadata edits,
+  while Fix rules are global and non-destructive.
 - GUI text fields are explicit-apply fields. Type the value, then press the
   matching button; invalid numbers or ids are rejected locally and server-side
   before any metadata is written.
@@ -205,6 +243,20 @@ Volts build. In game, start with `/rc help` and `/rc status`.
 - `/rc transform clear <id> <blend|natural_air|preserve_air|ruins|all_supported>`
   - remove supported transformer metadata while preserving unknown old
   transformer data.
+- `/rc transform edit <id> <blend|natural_air|preserve_air|ruins> <field> <value>`
+  - tune supported transformer details on exported config structures. Missing
+  supported transformer entries are created from safe preset defaults first.
+  `blend` and `natural_air` support `distance`, `randomization`, `source`, and
+  `dest`; `preserve_air` supports `source` and `dest`; `ruins` supports
+  `direction`, `min_decay`, `max_decay`, `chaos`, `density`, `gravity`,
+  `erosion`, `vines`, and `cobwebs`.
+- Examples: `/rc transform edit TestHouse blend distance 6`,
+  `/rc transform edit TestHouse natural_air randomization 0.35`,
+  `/rc transform edit TestHouse ruins max_decay 0.7`, and
+  `/rc transform edit TestHouse ruins gravity true`.
+- `/rc gui -> Gen -> Xform` exposes the same supported subset through
+  `Summary`, `Blend`, `Air`, and `Ruins` pages. Full arbitrary old transformer
+  tables and ordering UI remain deferred.
 - `/rc metadata ...` or `/rc meta ...` - edit basic metadata and simple natural
   generation metadata for exported structures. These are lower-level aliases
   behind the friendlier `/rc gen` workflow.
