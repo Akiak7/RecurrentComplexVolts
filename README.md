@@ -9,7 +9,7 @@ The port is built around compatibility. Missing mod content degrades safely,
 usually to air, instead of crashing a world. Old `.rcst` files remain the main
 Recurrent Complex structure format.
 
-Current public baseline: `0.4.0.0`.
+Current public baseline: `0.4.2.0`.
 
 ## Supported Version
 
@@ -115,7 +115,7 @@ and safe air fallback.
 Exported `.rcst` files are written under:
 
 ```text
-config/reccomplex/structures/active/structures/<id>.rcst
+config/reccomplex/structures/active/<id>.rcst
 ```
 
 Run `/rc reload` or click `Refresh` after manually adding files.
