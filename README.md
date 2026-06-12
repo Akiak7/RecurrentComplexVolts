@@ -1,7 +1,9 @@
 # Recurrent Complex Volts
 
+Please consider supporting the developer at [https://ko-fi.com/akiak](https://ko-fi.com/akiak)
+
 Recurrent Complex Volts brings classic Recurrent Complex structures and
-worldgen to Minecraft 1.20.1 Forge. It loads old RC `.rcst` structure files,
+worldgen to modern Minecraft. It loads old RC `.rcst` structure files,
 generates bundled structures in new worlds, and gives players an in-game GUI for
 browsing, previewing, placing, exporting, editing, and diagnosing structures.
 
@@ -10,13 +12,6 @@ usually to air, instead of crashing a world. Old `.rcst` files remain the main
 Recurrent Complex structure format.
 
 Current public baseline: `0.4.2.0`.
-
-## Supported Version
-
-- Minecraft: `1.20.1`
-- Forge: `47.4.10`
-- Java: `17`
-- Mod id: `reccomplex`
 
 Install it like a normal Forge mod by putting the built jar in your `mods`
 folder.
@@ -202,7 +197,7 @@ structures.
 
 ## What The Mod Adds
 
-- Classic RC `.rcst` structure loading for Minecraft 1.20.1 Forge.
+- Classic RC `.rcst` structure loading for modern Minecraft
 - Natural Overworld and Nether structures through a deferred compatibility
   worldgen bridge.
 - Bundled ruins, trees, dungeons, mazes, villages, Nether structures,
@@ -286,7 +281,7 @@ is adapted at load, preview, placement, export, and generation time.
 Compatibility policy:
 
 - preserve namespaced ids where possible;
-- convert common old metadata/blockstate forms to modern 1.20.1 blockstates;
+- convert common old metadata/blockstate forms to modern blockstates;
 - replace unknown or missing blocks with air unless a replacement is configured;
 - skip unknown or missing items/entities safely;
 - preserve block entity NBT only where the modern target is known and safe;
