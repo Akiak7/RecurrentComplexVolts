@@ -12,7 +12,7 @@ Volts build. In game, start with `/rc help` and `/rc status`.
   major generation toggles.
 - `/rc gui` or `/rc gui browser` - open the modern structure/schematic browser,
   preview launcher, exported-structure generation/rules/transformer panel,
-  and Author tab.
+  and Auth tab.
 - Controls -> Key Binds -> `Recurrent Complex` exposes unbound keys for opening
   the RC browser, confirming/canceling a pending preview, and undoing the latest
   RC operation.
@@ -36,16 +36,21 @@ Volts build. In game, start with `/rc help` and `/rc status`.
   transform controls, preview, confirm/cancel, undo, schematic conversion,
   a Meta page for editable copies and basic authors/comment/weblink fields,
   generation/rules/transformer/flag editing for exported config
-  structures, and an Author tab for selection/clipboard/export/marker
+  structures, and an Auth tab for selection/clipboard/export/marker/script/loot
   workflows.
-- `/rc schem list [filter]` - list `.schem` and `.schematic` interchange files
-  under `config/reccomplex/schematics`.
+- `/rc schem list [filter]` - list `.schem`, `.schematic`, and
+  Create/vanilla `.nbt` schematic files under `config/reccomplex/schematics`
+  and the instance-level `schematics/` folder.
 - `/rc schem preview <name> [at <x y z>] [rotate <0-3>] [mirror]` - preview a
   schematic import through the same confirm/cancel/undo flow as structures.
+  Modern-origin `.nbt` previews preserve block-entity/entity NBT generically
+  when the target block/entity type exists.
 - `/rc schem convert <name> <id>` - convert a schematic into a persistent
-  `.rcst` structure.
+  `.rcst` structure. `.nbt` files are import sources; convert them before
+  configuring RC worldgen. The modern-origin marker is preserved by conversion.
 - `/rc check <id>` - inspect structure size, markers, scripts, and conversion
-  report without placing.
+  report without placing. The output includes whether legacy-safe or modern NBT
+  passthrough placement will be used.
 - `/rc audit` - audit all loadable structures.
 - `/rc audit one <id>` - audit one structure.
 - `/rc audit filter <text>` - audit matching structures.
@@ -133,19 +138,47 @@ repair into one editable `.rcst` file instead of using a global rule.
   shift, front direction, rotation, and mirror flag.
 - `/rc script trigger spawn|redstone <x y z> <true|false>` - toggle whether
   the marker runs when placed with its parent structure or when powered.
+- `/rc loot list [filter]` - list bundled and user `.rcig` inventory
+  generators.
+- `/rc loot show <id>` - show one inventory generator's range and weighted
+  entries.
+- `/rc loot create <id>` - create an editable user `.rcig` generator.
+- `/rc loot delete <id>` - delete an editable user `.rcig` generator.
+- `/rc loot set range <id> <min> <max>` - set the generated item-count range.
+- `/rc loot entry add <id> <item> <min> <max> <weight>` - add a weighted item
+  entry to an editable `.rcig`.
+- `/rc loot entry update <id> <index> <item> <min> <max> <weight>` - replace one
+  1-based item entry.
+- `/rc loot entry remove <id> <index>` - remove one 1-based item entry.
+- `/rc loot container show <x y z>` - inspect RC or vanilla loot data on one
+  container.
+- `/rc loot container rcig <x y z> <id> [multi|single|component]` - place an RC
+  inventory-generator marker into one container. The marker is captured when the
+  structure is exported.
+- `/rc loot container vanilla <x y z> <lootTable> [seed]` - assign a normal
+  vanilla/datapack loot table to one container.
+- `/rc loot container clear <x y z>` - remove RC generator markers and vanilla
+  loot-table NBT from one container.
 - `/rc undo` covers committed structure placement, clipboard paste, and marker
   painting. It does not cover worldgen, selection edits, export, metadata edits,
   preview creation, or cancel.
-- The `/rc gui` Author tab has `Select`, `Clipboard`, `Markers`, and `Script`
+- The `/rc gui` Auth tab has `Tools`, `Select`, `Clipboard`, `Markers`, `Script`, and `Loot`
   pages for
-  precise coordinate entry, here/look selection, one-face resize, copy, paste
-  preview, `.rcst`/`.schem` export, common marker fills, and command/simple or
-  structure-list spawner marker authoring. The Script page is split into
-  `Target`, `Cmd`, `Spawn`, and `Xform` subpages.
+  grabbing selector/inspector items, precise coordinate entry, here/look selection, one-face resize, copy, paste
+  preview, `.rcst`/`.schem` export, common marker fills, command/simple or
+  structure-list spawner marker authoring, vanilla loot-table assignment, and
+  simple `.rcig` inventory-generator editing. The Script page is split into
+  `Target`, `Cmd`, `Spawn`, and `Xform` subpages; the Loot page is split into
+  `Box`, `Van`, `Gen`, and `Entry` subpages.
 - `/rc export <id>` - write the current selection to
-  `config/reccomplex/structures/active/structures/<id>.rcst`.
+  `config/reccomplex/structures/active/<id>.rcst`. Modern in-game exports are
+  marked for generic modern block-entity/entity NBT passthrough. User `.rcst`
+  files are loaded from loose files directly under `structures` and from
+  `structures/active`; move files to `structures/inactive` to keep them
+  installed but disabled.
 - `/rc schem export <name>` - write the current selection to a Sponge `.schem`
-  under `config/reccomplex/schematics`.
+  under `config/reccomplex/schematics`. Sponge exports remain on the legacy-safe
+  schematic import path when re-imported.
 - `/rc schematic ...` - long alias for `/rc schem ...`.
 - `/rc gen show <id>` - show compact natural-generation metadata.
 - `/rc gen validate <id>` - check whether a structure is ready for the current
@@ -321,6 +354,12 @@ structures.
 
 - `/rc worldgen balance` - show the main global controls and config file path.
 - `/rc gui` -> `Balance` - edit the same global controls in game.
+- `worldgen.includeBundledStructures` controls whether bundled jar/dev-resource
+  `.rcst` files are included in default RC worldgen catalogs and shown in
+  `/rc gui -> Structs`. Turning it off does not block explicit command/manual
+  placement, copying, checks, or audits by id; explicit
+  `worldgen.allowedStructureIds` entries can still opt bundled natural structures
+  back in.
 - Natural structures use `worldgen.rarity`; higher values are rarer, and
   `1` is the default RC rate.
 - Natural multipliers use `worldgen.balance`: `naturalFrequencyMultiplier`
@@ -346,6 +385,7 @@ structures.
   disabled by default and does not affect manual placement, saplings,
   decorations, villages, schematics, or scripted children.
 - Command examples:
+  - `/rc worldgen balance set bundled false`
   - `/rc worldgen balance set natural multiplier 0.5`
   - `/rc worldgen balance set natural rarity 2`
   - `/rc worldgen balance set natural category frequent 2`
