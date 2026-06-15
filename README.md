@@ -1,6 +1,6 @@
 # Recurrent Complex Volts
 
-Please consider supporting the developer at [https://ko-fi.com/akiak](https://ko-fi.com/akiak)
+Please consider supporting the developer at https://ko-fi.com/akiak
 
 Recurrent Complex Volts brings classic Recurrent Complex structures and
 worldgen to modern Minecraft. It loads old RC `.rcst` structure files,
@@ -11,7 +11,7 @@ The port is built around compatibility. Missing mod content degrades safely,
 usually to air, instead of crashing a world. Old `.rcst` files remain the main
 Recurrent Complex structure format.
 
-Current public baseline: `0.4.2.0`.
+Current public baseline: `0.5.1.0`.
 
 Install it like a normal Forge mod by putting the built jar in your `mods`
 folder.
@@ -48,11 +48,13 @@ For the detailed command map, see
   - Browse bundled and exported `.rcst` structures, inspect details, preview
     structures, confirm/cancel placements, undo, and pick random structures.
 - `Schems`
-  - Browse `.schem` and legacy `.schematic` files, preview schematic imports,
-    and convert schematics into editable `.rcst` structures.
+  - Browse `.schem`, legacy `.schematic`, and Create/vanilla `.nbt` files,
+    preview schematic imports, and convert schematics into editable `.rcst`
+    structures.
 - `Auth`
   - Work with selections, clipboard copy/paste, `.rcst` export, `.schem`
-    export, marker painting, and script marker authoring.
+    export, marker painting, script marker authoring, and loot/container
+    authoring.
 - `Balance`
   - Make RC worldgen rarer, commoner, disabled, or spaced out without opening
     the config file by hand.
@@ -79,11 +81,15 @@ direct copy mode and is not recommended for ordinary placement.
 
 ### Import A Schematic
 
-Put Sponge `.schem` or legacy MCEdit/Schematica `.schematic` files under:
+Put Sponge `.schem`, legacy MCEdit/Schematica `.schematic`, or
+Create/vanilla structure-template `.nbt` files under:
 
 ```text
 config/reccomplex/schematics
 ```
+
+Create `.nbt` files may also stay in the instance-level `schematics/` folder
+that Create uses.
 
 Then:
 
@@ -95,17 +101,26 @@ Then:
 
 Schematic import uses the same compatibility resolver as `.rcst` structures
 where possible, including old vanilla flattening, missing-block replacements,
-and safe air fallback.
+and safe air fallback. Create/vanilla `.nbt` imports are marked as modern-origin
+structures so block-entity and entity NBT can pass through generically when the
+same modded block/entity types exist at placement time. `.nbt` imports are still
+schematic sources; to use one in RC worldgen, convert it to `.rcst` first and
+then configure its generation rules.
 
 ### Export A Custom Build
 
-1. Use `reccomplex:block_selector` on one corner to set `pos1`.
-2. Crouch-use it on the opposite corner to set `pos2`.
-3. Use `reccomplex:block_selector_floating` when you need to select an air
+1. Run `/rc gui`, open `Auth -> Tools`, and click the tool buttons if you need
+   the selector or inspector items.
+2. Use `reccomplex:block_selector` on one corner to set `pos1`.
+3. Crouch-use it on the opposite corner to set `pos2`.
+4. Use `reccomplex:block_selector_floating` when you need to select an air
    corner.
-4. Run `/rc gui` and open `Auth`.
-5. Use `Select` to inspect or adjust the inclusive cuboid.
-6. Use `Clip` to copy, paste-preview, export `.rcst`, or export `.schem`.
+5. Use `Auth -> Select` to inspect or adjust the inclusive cuboid.
+6. Use `Auth -> Clip` to copy, paste-preview, export `.rcst`, or export `.schem`.
+
+Modern in-game `.rcst` exports are marked for the same modern NBT passthrough as
+Create/vanilla `.nbt` imports. Old unmarked `.rcst`, Sponge `.schem`, and legacy
+`.schematic` imports continue to use the legacy-safe NBT import path.
 
 Exported `.rcst` files are written under:
 
@@ -113,7 +128,9 @@ Exported `.rcst` files are written under:
 config/reccomplex/structures/active/<id>.rcst
 ```
 
-Run `/rc reload` or click `Refresh` after manually adding files.
+Files placed directly under `structures` or under `structures/active` are
+loaded. Move files to `structures/inactive` to keep them installed but disabled.
+Run `/rc reload` or click `Refresh` after manually adding or moving files.
 
 ### Make A Bundled Structure Editable
 
@@ -190,14 +207,48 @@ Open `/rc gui -> Balance`.
 - `1` means normal.
 - `2` means twice as common.
 - `rarity` is the old denominator: higher means rarer.
+- `Bundled on/off` controls whether bundled mod structures participate in
+  default RC worldgen catalogs and whether they appear in `/rc gui -> Structs`.
+  It does not delete bundled structures or block explicit command/manual use,
+  copying, checks, or audits. Explicit `worldgen.allowedStructureIds` entries
+  can still opt bundled natural structures back in.
 
 `Balance` covers natural structures, category multipliers, saplings,
 decorations, villages, and optional spacing/anti-clumping for RC natural
 structures.
 
+### Add Loot To Containers
+
+Open `/rc gui -> Auth -> Loot`.
+
+- `Container`
+  - Pick a chest/barrel/container with `Here`, `Look`, or coordinates.
+  - Use `Box` to assign an RC inventory generator marker (`RCIG`).
+  - Use `Van` to assign a normal vanilla/datapack loot table.
+  - Use `Clear` to remove RC/vanilla loot data from that container.
+- `Generator`
+  - Use `Gen` to create/delete simple `.rcig` inventory generators and set
+    their min/max item-count range.
+  - Use `Entry` to add/update/remove weighted item entries.
+  - Use the small arrows beside generator fields to pick from discovered
+    `.rcig` files instead of remembering names by hand.
+
+Vanilla loot tables are still supported. RC `.rcig` generators are useful when
+you want old-RC-style, in-game editable weighted loot that can also be preserved
+inside exported structures.
+
+User `.rcig` files can live directly under
+`config/reccomplex/structures/active/<id>.rcig`. The older
+`active/inventory/<id>.rcig` layout is still read for compatibility. Loose
+`.rcig` files directly under `config/reccomplex/structures` are also loaded;
+files under `structures/inactive` are ignored. Vanilla
+loot tables use normal datapack or mod resource locations, for example
+`data/<namespace>/loot_tables/chests/my_loot.json`, then type
+`<namespace>:chests/my_loot` in the GUI.
+
 ## What The Mod Adds
 
-- Classic RC `.rcst` structure loading for modern Minecraft
+- Classic RC `.rcst` structure loading for Minecraft 1.20.1 Forge.
 - Natural Overworld and Nether structures through a deferred compatibility
   worldgen bridge.
 - Bundled ruins, trees, dungeons, mazes, villages, Nether structures,
@@ -205,7 +256,8 @@ structures.
   subsets.
 - GUI-first structure browsing, ghost preview, confirm/cancel, undo, schematic
   import/export, authoring, generation editing, transformer editing, script
-  marker editing, missing-block repair, and worldgen balance controls.
+  marker editing, loot/container editing, missing-block repair, and worldgen
+  balance controls.
 - Missing-content tolerance for old structure packs from modded 1.12.2 worlds.
 - Compatibility audits and diagnostics for large imported structure libraries.
 - Vanilla locate support for aggregate RC natural structures:
@@ -241,6 +293,8 @@ diagnostic surface:
 - `/rc missing dump [filter]`
   - Write a detailed missing-block report for old structure packs under
     `config/reccomplex/reports`.
+- `/rc loot list`
+  - List RC inventory generators for container loot authoring.
 - `/rc check <id>`
   - Inspect one structure without placing it.
 - `/rc audit one <id>`
@@ -266,6 +320,9 @@ The current GUI-backed authoring workflow has three item tools:
 
 Useful gives:
 
+You can also use `/rc gui -> Auth -> Tools` to get these three items from
+icon buttons.
+
 ```text
 /give @p reccomplex:block_selector
 /give @p reccomplex:block_selector_floating
@@ -281,7 +338,7 @@ is adapted at load, preview, placement, export, and generation time.
 Compatibility policy:
 
 - preserve namespaced ids where possible;
-- convert common old metadata/blockstate forms to modern blockstates;
+- convert common old metadata/blockstate forms to modern 1.20.1 blockstates;
 - replace unknown or missing blocks with air unless a replacement is configured;
 - skip unknown or missing items/entities safely;
 - preserve block entity NBT only where the modern target is known and safe;
@@ -305,7 +362,8 @@ Important groups:
 
 - `worldgen`
   - Natural generation, deferred placement limits, optional spacing, native
-    locate support, complement behavior, and diagnostics.
+    locate support, bundled-default inclusion, complement behavior, and
+    diagnostics.
 - `saplings`
   - RC sapling replacement.
 - `decorations`
@@ -334,6 +392,14 @@ Known limitations:
   existing RC structure-list spawners, while `mazeGen`, holder scripts, custom
   environment matchers, and embedded per-marker child-table editing remain
   deferred;
+- modern-origin `.nbt` imports and in-game `.rcst` exports preserve unknown
+  modded block-entity/entity NBT generically, but rotation and mirroring only
+  transform block states, positions, and supported entity orientation. Unknown
+  mod-specific machine internals are not interpreted and may need in-game
+  reconfiguration after transformed placement;
+- loot authoring covers vanilla loot-table assignment and practical `.rcig`
+  inventory generators; full old RC book/artifact generator table editing is
+  still deferred;
 - missing mod content degrades safely, usually to air, rather than being
   automatically remapped to unrelated vanilla blocks;
 - some far-away decoration catch-up is intentionally ephemeral under very fast
