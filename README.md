@@ -10,9 +10,21 @@ The port is built around compatibility. Missing mod content degrades safely,
 usually to air, instead of crashing a world. Old `.rcst` files remain the main
 Recurrent Complex structure format.
 
-Current public baseline: `0.7.0.0`.
+Version: **0.7.3.0**. See the [changelog](#changes-in-0730).
 
 Please consider supporting the developer at https://ko-fi.com/akiak
+
+## Changes in 0.7.3.0
+
+- Added a global dimension blacklist, editable through the config, commands and **Balance → Dim**.
+- Added **Ignore dim blacklist** for editable/custom structures. Bundled originals obey the blacklist; structures already accepted for generation finish normally.
+- Added natural generation and locating for custom End structures, with surface placement that rejects empty void and support for deliberately floating structures. No bundled End structures are added.
+- Shortened the Balance buttons to **Sapling**, **Vil** and **Dim**, keeping them on one row, and shortened the override label to **Ignore dim blacklist**.
+- Updated user guides, including outer-island-only End generation and the existing loot-marker workflow.
+
+Update the mod on both client and server: this version uses protocol **24**, which is incompatible with the published 0.7.2.0 release.
+
+The loot-marker fix and terrain-planning performance improvements were already included in 0.7.2.0 and remain included here.
 
 ## Guide Contents
 
@@ -33,6 +45,8 @@ Detailed guides:
 - [Structure Authoring](docs/user/structure-authoring.md)
 - [Configuration And Troubleshooting](docs/user/configuration-and-troubleshooting.md)
 - [Command Reference](docs/user/command-reference.md)
+- [Dimension Blacklist](docs/user/configuration-and-troubleshooting.md#dimension-blacklist)
+- [End Structures And Outer-Island Setup](docs/user/structure-authoring.md#generating-structures-in-the-end)
 
 ## Requirements And Installation
 
@@ -41,7 +55,7 @@ Detailed guides:
 - Java: `17`
 - Mod id: `reccomplex`
 
-Install the matching `RecurrentComplexVolts-1.20.1-0.7.0.0.jar` in the instance's
+Install the matching `RecurrentComplexVolts-1.20.1-0.7.3.0.jar` in the instance's
 `mods` folder. Multiplayer servers and connecting clients should all use the
 matching jar. No content-library dependency is required beyond Minecraft and the
 listed Forge version.
@@ -50,6 +64,8 @@ Do not use the 1.21.1 or 26.1.2 NeoForge jar on this target. A jar built for a
 different Minecraft version or loader will not work.
 
 ## Updating And Existing Worlds
+
+Version **0.7.3.0** uses RC protocol **24**. Install the matching 0.7.3.0 build on both client and server. The published 0.7.2.0 release uses an older protocol and cannot connect to this version; update both sides together.
 
 RC worldgen runs when chunks are first generated. Installing the mod in an
 existing world works, but structures appear only in unexplored chunks; existing
@@ -117,9 +133,9 @@ For the detailed command map, see the
   - Work with selections, clipboard copy/paste, `.rcst` export, `.schem`
     export, marker painting, script marker authoring, weighted child pools, and
     loot/container authoring.
-- `Balance`
+- `Bal` (Balance)
   - Make RC worldgen rarer, commoner, disabled, or spaced out without opening
-    the config file by hand.
+    the config file by hand. Use **Dim** to block a dimension globally.
 - `Gen`
   - Edit one selected structure: make editable copies, set generation rules,
     tune natural/sapling/decoration/village metadata, edit supported
@@ -166,7 +182,7 @@ Y for this one request and bypasses surface selection.
 
 Explicit generation intentionally ignores automatic selector gates such as
 frequency, biome/dimension eligibility, spacing, bundled inclusion, allowlists,
-and the global worldgen toggle. It still requires supported natural metadata and
+the dimension blacklist, and the global worldgen toggle. It still requires supported natural metadata and
 keeps build-height, conformity, `ensureBlocks`, chunk-safety, script, Create, and
 phased-placement checks.
 
@@ -413,9 +429,13 @@ Open `/rc gui -> Balance`.
   copying, checks, or audits. Explicit `worldgen.allowedStructureIds` entries
   can still opt bundled natural structures back in.
 
-`Balance` covers natural structures, category multipliers, saplings,
-decorations, villages, and optional spacing/anti-clumping for RC natural
-structures.
+The Balance page uses **Natural**, **Sapling**, **Decor**, **Vil**, **Spacing** and **Dim** buttons. They cover frequency, optional natural spacing and the global dimension blacklist.
+
+### Control Dimensions And Configure End Generation
+
+Use **Balance → Dim** to block or unblock an exact dimension id. Editable structures can enable **Ignore dim blacklist** under **Gen → Rules**; bundled originals obey the global list. Accepted work and its children finish, including after a restart. Manual placement and `/rc generate` bypass the blacklist.
+
+Custom natural structures can generate on central and outer End islands when their dimension and biome rules permit it. To avoid the dragon island, keep the End dimension and allow only the four outer-island biomes. See [End setup](docs/user/structure-authoring.md#generating-structures-in-the-end) and the [blacklist guide](docs/user/configuration-and-troubleshooting.md#dimension-blacklist) for GUI steps and commands.
 
 ### Add Loot To Containers
 
@@ -446,11 +466,15 @@ loot tables use normal datapack or mod resource locations, for example
 `data/<namespace>/loot_tables/chests/my_loot.json`, then type
 `<namespace>:chests/my_loot` in the GUI.
 
+The marker item is expected in the **authoring container** and saved template. Export the container as part of your structure, then place that structure to generate loot. Modern exported containers now process the same RC markers as legacy structures, preserving ordinary items and their data. This correction was included in 0.7.2.0.
+
+Existing saved structures with valid markers work without re-exporting. Already generated chests are not automatically repaired. If a newly placed copy still contains an unexpected marker or has no loot, confirm the generator id is loaded with `/rc loot show <id>`, check its entries and ranges, and inspect `logs/latest.log` for missing or invalid generator reports. A missing or corrupt generator is not fixed by renaming the marker.
+
 ## What The Mod Adds
 
 - Classic RC `.rcst` structure loading for Minecraft 1.20.1 Forge.
-- Natural Overworld and Nether structures through a deferred compatibility
-  worldgen bridge.
+- Natural Overworld, Nether and creator-configured End structures through a
+  deferred compatibility worldgen bridge. No bundled End structures are added.
 - Bundled ruins, trees, dungeons, mazes, villages, Nether structures,
   decorations, sapling replacements, terrain blending, and script-generation
   subsets.
@@ -608,7 +632,7 @@ tuning, fast-lane behavior, and diagnostic procedures.
   mod or config change.
 - Run `/rc worldgen status`, `catalog`, `balance`, and `recent`.
 - Check `worldgen.enabled`, bundled inclusion, `allowedStructureIds`, spawn
-  distance, rarity, and the natural multiplier.
+  distance, rarity, the natural multiplier, and **Balance → Dim**.
 - Remember that an older generated config retains its stored values.
 
 ### One Structure Does Not Generate
@@ -692,8 +716,9 @@ structure/schematic id, and a screenshot for visible placement or GUI issues.
 
 ## Building From Source
 
-Most users do not need this section. It is for developers or pack maintainers
-building the jar locally.
+This GitHub repository contains documentation only, not source code or the
+Gradle wrapper. The following commands apply to a Forge 1.20.1 source checkout,
+not this documentation repository.
 
 Use a Java 17 JDK and the included Gradle wrapper:
 
@@ -729,5 +754,4 @@ Build target details:
 - Java: `17`
 - Gradle wrapper: `8.8`
 
-For release testing, use `./gradlew verifyReleaseJar` plus the checklist in
-[`docs/porting/release-checklist.md`](docs/porting/release-checklist.md).
+In a source checkout, use `./gradlew verifyReleaseJar` for release-jar validation.

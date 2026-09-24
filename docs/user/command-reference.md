@@ -354,7 +354,7 @@ use this named-list eligibility filter.
   installed; it does not backfill old worlds or identify vanilla structures.
 - `/locate structure reccomplex:natural_structure` - use vanilla locate to
   predict the nearest aggregate RC natural structure candidate, including in
-  unexplored terrain. The native structure shell accepts the legacy `.rcst`
+  unexplored Overworld, Nether and End terrain. The native structure shell accepts the legacy `.rcst`
   placement body through RC's compatibility/deferred worldgen pipeline, parking
   it durably if the live queue is busy. Native
   locate mode anchors RC natural placement to the located chunk center so the
@@ -477,3 +477,14 @@ See also:
 - [Main README](../../README.md)
 - [Structure Authoring Guide](structure-authoring.md)
 - [Configuration And Troubleshooting](configuration-and-troubleshooting.md)
+
+## Dimension Blacklist And End Generation
+
+- `/rc worldgen dimensions list` — show the global blacklist.
+- `/rc worldgen dimensions block <dimensionId>` — block new automatic roots in an exact dimension id.
+- `/rc worldgen dimensions unblock <dimensionId>` — remove that global block.
+- `/rc gen ignoreDimensionBlacklist <id> <true|false>` — set an editable structure’s override; other eligibility checks still apply.
+
+Changes require permission level **4** and save immediately. Use **Balance → Dim** for the global list and **Gen → Rules → Ignore dim blacklist** for a custom override. Bundled originals obey the list. Manual placement and `/rc generate` bypass it; accepted work and its children finish. Predictive locate filters new candidates, while recorded native starts remain available to vanilla aggregate locate. See [blacklist behavior](configuration-and-troubleshooting.md#dimension-blacklist).
+
+For End structures, set both dimension and biome eligibility. See [End setup](structure-authoring.md#generating-structures-in-the-end) for exact commands, including an outer-island allowlist that avoids the central dragon-island biome. End generation does not add End decorations, villages or bundled content.

@@ -138,6 +138,59 @@ Use these when diagnosing a structure:
 /rc worldgen rates <id>
 ```
 
+For End structures, follow [End setup](structure-authoring.md#generating-structures-in-the-end), including the outer-islands-only recipe if you want to avoid the dragon-fight island. A dimension preset never overrides incompatible biome rules.
+
+The [global dimension blacklist](configuration-and-troubleshooting.md#dimension-blacklist) is edited under **Balance → Dim**. Editable structures can enable **Ignore dim blacklist** under **Gen → Rules**; this bypasses only that blacklist. Bundled originals obey it. Accepted roots and their children finish normally, including after restart; manual generation bypasses the rule.
+
+## Generating structures in the End
+
+Version **0.7.3.0** supports automatic natural generation in the End for custom structures configured for it. It adds no bundled End structures. Both the central dragon island and outer islands are eligible when the structure’s biome rules allow them.
+
+### Configure an End structure
+
+1. Open `/rc gui` and select an editable structure. To customize a bundled one, first use `/rc copy SmallFortRuins MyEndStructure`.
+2. In **Gen → Nat**, choose a natural-generation preset first if needed, such as **Surf**. Then cycle **Dim** to **end** and click the separate **Dim** apply button. Presets reset their own biome/dimension rules, so apply the End settings afterward.
+3. In **Gen → Rules**, remove incompatible natural biome rules and allow **$END**, or choose specific End biomes. The dimension rule does not override biome rules: an Overworld-only biome rule still prevents End generation.
+4. The **Surf** preset needs island terrain. Existing fixed/random-height placer metadata can deliberately float over the void, but the GUI does not provide a general absolute-height natural placer editor. Existing slope and conformity checks still apply at island edges.
+5. Check **Balance → Dim**. If `minecraft:the_end` is blocked, unblock it or enable **Ignore dim blacklist** for this custom structure. See [dimension blacklist](configuration-and-troubleshooting.md#dimension-blacklist).
+6. Travel to newly generated End chunks. Test with `/rc locate MyEndStructure`, `/rc locate MyEndStructure family`, or `/locate structure reccomplex:natural_structure`. The last command finds the aggregate RC structure type, not a specific design.
+
+### Outer islands only: avoid the dragon-fight island
+
+Keep the generation **dimension** set to **end**. In **Gen → Rules**, clear the natural **biome** rules with **Clr**, then enter each of these ids and click **Allow**:
+
+- `minecraft:end_highlands`
+- `minecraft:end_midlands`
+- `minecraft:end_barrens`
+- `minecraft:small_end_islands`
+
+Equivalent commands for a structure that already has natural-generation metadata:
+
+```mcfunction
+/rc gen natural dimension MyEndStructure end
+/rc gen rules natural biome clear MyEndStructure
+/rc gen rules natural biome allow MyEndStructure minecraft:end_highlands
+/rc gen rules natural biome allow MyEndStructure minecraft:end_midlands
+/rc gen rules natural biome allow MyEndStructure minecraft:end_barrens
+/rc gen rules natural biome allow MyEndStructure minecraft:small_end_islands
+```
+
+`minecraft:the_end` has two meanings depending on the control: as a **dimension id**, it means the entire End; as a **biome id**, it means the central-island biome. The four-biome allowlist above excludes that central biome. Blocking the dimension under **Balance → Dim** would instead block automatic generation throughout the End.
+
+These rules select eligible placement locations; the usual terrain checks still decide whether a structure fits. They do not alter the dragon fight or existing structures.
+
+### Placement, locate and updates
+
+The `/rc worldgen status` summary still prints the older `dimensions=overworld+nether natural` label. In 0.7.3.0, natural generation also supports the End as described here; that summary label does not control eligibility.
+
+Manual placement and `/rc generate` bypass the global blacklist. Structures already accepted for generation finish normally, including their children and work restored after a restart. Blacklisting does not remove recorded structure locations.
+
+Predictive RC locate requires `worldgen.nativeNaturalStructure=true`. The existing fallback feature path also supports End natural generation, but predictive RC locate remains unavailable while native generation is disabled. Both native locate mechanisms use the same natural eligibility and blacklist policy; recorded native starts remain discoverable through vanilla aggregate locate.
+
+Version **0.7.3.0** uses RC protocol **24**. Install the matching 0.7.3.0 build on both client and server. The published 0.7.2.0 release uses an older protocol and cannot connect to this version; update both sides together.
+
+Existing End chunks are not retroactively populated. This feature adds no End decoration or village bridge and does not change the dragon fight, gateways, vanilla End structures, or arbitrary custom-dimension support.
+
 ## Saplings, Decorations, And Villages
 
 `Gen -> Trig` provides sapling and vanilla-decoration replacement presets.
@@ -322,6 +375,10 @@ Use `Auth -> Loot` after choosing a container target:
 User `.rcig` files normally live beside structures under
 `config/reccomplex/structures/active`. Datapack loot tables continue to use
 normal namespaced ids such as `my_pack:chests/fort`.
+
+The marker item is expected in the **authoring container** and saved template. Export the container as part of your structure, then place that structure to generate loot. Modern exported containers now process the same RC markers as legacy structures, preserving ordinary items and their data. This correction was included in 0.7.2.0.
+
+Existing saved structures with valid markers work without re-exporting. Already generated chests are not automatically repaired. If a newly placed copy still contains an unexpected marker or has no loot, confirm the generator id is loaded with `/rc loot show <id>`, check its entries and ranges, and inspect `logs/latest.log` for missing or invalid generator reports. A missing or corrupt generator is not fixed by renaming the marker.
 
 ## Missing Mod Content
 

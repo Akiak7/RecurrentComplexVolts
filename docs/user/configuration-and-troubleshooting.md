@@ -33,11 +33,12 @@ custom settings afterward.
 Older `legacyWorldgen`, `legacySaplings`, `legacyDecorations`, and
 `legacyVanilla` public section names are migrated where possible.
 
-## Important 0.7.0.0 Defaults
+## Current Defaults (0.7.3.0)
 
 | Setting | Default | Meaning |
 | --- | ---: | --- |
 | `worldgen.enabled` | `true` | Enables RC natural structures. |
+| `worldgen.dimensionBlacklist` | `[]` | Exact dimension ids blocked for new automatic roots. |
 | `worldgen.includeBundledStructures` | `true` | Includes bundled structures in normal catalogs and the GUI. |
 | `worldgen.rarity` | `1` | Extra denominator; higher is rarer. |
 | `worldgen.balance.naturalFrequencyMultiplier` | `1.0` | Main overall natural-frequency control. |
@@ -200,7 +201,7 @@ Run:
 ```
 
 `/rc generate <id>` is useful for testing its natural placer at your current X/Z
-without automatic frequency, biome, dimension, spacing, allowlist, or global
+without automatic frequency, biome, dimension, spacing, allowlist, dimension-blacklist, or global
 worldgen gates. A successful explicit preview does not prove that automatic
 selector eligibility is configured correctly.
 
@@ -286,3 +287,60 @@ See also:
 - [Main README](../../README.md)
 - [Command Reference](command-reference.md)
 - [Structure Authoring Guide](structure-authoring.md)
+
+## Dimension blacklist
+
+Use `/rc gui` → **Balance → Dim** to block or unblock a dimension. Select a loaded dimension or enter its exact ID, for example `minecraft:the_nether`. Valid IDs for dimensions that are not installed yet are also accepted. Changes require operator permission level 4 and take effect immediately for new generation attempts.
+
+Equivalent commands:
+
+```mcfunction
+/rc worldgen dimensions list
+/rc worldgen dimensions block minecraft:the_nether
+/rc worldgen dimensions unblock minecraft:the_nether
+```
+
+In `config/reccomplex-common.toml`, the default is an empty list:
+
+```toml
+[worldgen]
+dimensionBlacklist = []
+```
+
+For example, use `dimensionBlacklist = ["minecraft:the_nether", "example:moon"]`. IDs are exact and case-sensitive; wildcards are not supported.
+
+### Custom structure overrides
+
+For an editable structure, open **Gen → Rules** and enable **Ignore dim blacklist**, or use:
+
+```mcfunction
+/rc gen ignoreDimensionBlacklist MyStructure true
+```
+
+The optional `.rcst` metadata field `ignoreDimensionBlacklist` defaults to false. It is retained when editing, copying and re-exporting the structure. Bundled originals always obey the blacklist. Copy a bundled structure into the editable library if you need a customized version.
+
+The override bypasses only this blacklist. The structure still needs to pass its normal dimension, biome, dependency, enabled and terrain rules. Natural generation also supports the End; see [End structures](structure-authoring.md#generating-structures-in-the-end). Arbitrary custom dimensions remain outside the supported generation paths.
+
+### What is affected
+
+The blacklist applies to new automatic natural structures, decorations, sapling replacements and village additions. A rejected sapling replacement falls back to vanilla growth. An accepted root keeps all its maze pieces and script children.
+
+Manual placement and `/rc generate` bypass the blacklist. Already accepted queued, parked or partly placed structures finish normally, including after saving and restarting. Existing structures are not removed or changed.
+
+Predictive `/rc locate` searches respect the blacklist and explain when the requested target is blocked. Vanilla aggregate locate uses the same admission policy for predictions; recorded existing structure starts remain discoverable. Changing the blacklist or reloading structure metadata clears RC's cached vanilla predictions, without clearing recorded starts.
+
+Version **0.7.3.0** uses RC protocol **24**. Install the matching 0.7.3.0 build on both client and server. The published 0.7.2.0 release uses an older protocol and cannot connect to this version; update both sides together.
+
+## End Structures Do Not Appear
+
+End support enables creator-supplied natural structures; it adds no bundled End structures. Check both the dimension preset and natural biome rules, **Balance → Dim**, and whether the selected terrain can support the placer. Surface placers reject empty void and can reject steep island edges. Explore new chunks. See [End setup](structure-authoring.md#generating-structures-in-the-end) for central/outer island choices and the outer-islands-only recipe.
+
+## A Container Still Shows A Generation Tag
+
+The marker item is expected in the **authoring container** and saved template. Export the container as part of your structure, then place that structure to generate loot. Modern exported containers now process the same RC markers as legacy structures, preserving ordinary items and their data. This correction was included in 0.7.2.0.
+
+Existing saved structures with valid markers work without re-exporting. Already generated chests are not automatically repaired. If a newly placed copy still contains an unexpected marker or has no loot, confirm the generator id is loaded with `/rc loot show <id>`, check its entries and ranges, and inspect `logs/latest.log` for missing or invalid generator reports. A missing or corrupt generator is not fixed by renaming the marker.
+
+## Client And Server Cannot Connect After Updating
+
+Version **0.7.3.0** uses RC protocol **24**. Install the matching 0.7.3.0 build on both client and server. The published 0.7.2.0 release uses an older protocol and cannot connect to this version; update both sides together.
